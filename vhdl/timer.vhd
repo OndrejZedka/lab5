@@ -20,4 +20,5 @@ end timer;
 
 architecture synth of timer is
 begin
+    -- TEST
 end synth;
