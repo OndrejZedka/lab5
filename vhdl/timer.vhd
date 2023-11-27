@@ -19,32 +19,41 @@ entity timer is
 end timer;
 
 architecture synth of timer is
-    signal sg_cont, sg_to, sg_ito, sg_run,sg_stop,sg_start, sg_read: std_logic;
+    signal sg_cont, sg_to, sg_ito, sg_run, sg_read, sg_write_period: std_logic; -- sg_start, sg_stop
     signal sg_address: std_logic_vector(1 DOWNTO 0);
     signal sg_counter, sg_periode, sg_control, sg_status : std_logic_vector(31 DOWNTO 0);
     signal sg_count, sg_next_count : integer;
-    type state is (counting, notcouting);
-    signal s_state,s_nextsate: state;
+    type state is (counting, notcounting);
+    signal s_state: state; -- s_nextsate
 begin
-    counting : Process (clk,n_reset) is
-        if n_reset = '0' then
+    process (clk,reset_n) is
+    begin
+        if reset_n = '0' then
             sg_cont <= '0';
             sg_to <= '0'; 
             sg_ito <= '0';
             sg_run <= '0'; 
-            sg_stop <= '0';
-            sg_start <= '0';
+--            sg_stop <= '0';
+--            sg_start <= '0';
             sg_count <= 0;
-            sg_counter <= (others => '0')
-            sg_periode <= (others => '0')
+            sg_counter <= (others => '0');
+            sg_periode <= (others => '0');
         elsif rising_edge(clk) then
-            sg_count <= sg_next_count;
-
+            if s_state = counting then
+                sg_count <= sg_next_count;
+                if sg_count = 0 then
+                    sg_to <= '1';
+                end if;
+            end if;
+            
         end if;
     end process;
     
-    sg_next_count <= to_integer(unsigned(sg_periode)) when sg_count = 0 else sg_count - 1;
+    sg_next_count <= to_integer(unsigned(sg_periode)) when (sg_write_period = '1' or sg_count = 0 or (sg_cont = '0' and sg_count = to_integer(unsigned(sg_periode)))) 
+                    else sg_count - 1;
 
+    sg_run <= '1' when s_state = counting else '0';
+    irq <= sg_ito and sg_to;
     
     --read
     process(clk)
@@ -59,10 +68,16 @@ begin
     begin
         rddata <= (others => 'Z');
         if (sg_read = '1') then
-            rddata <= sg_counter when sg_address = "00" else
-                    sg_periode when sg_address = "01" else
-                    sg_control when sg_address = "10" else 
-                    sg_status;
+            if sg_address = "00" then
+                rddata <= sg_counter;
+            elsif sg_address = "01" then
+                rddata <= sg_periode;
+            elsif sg_address = "10" then
+                rddata <= sg_control;
+            else
+                rddata <= sg_status;
+            end if;
+          
         end if;
     end process;
 
@@ -70,15 +85,29 @@ begin
     process(clk)
     begin
         if (rising_edge(clk)) then
+            sg_write_period <= '0';
             if (cs = '1' and write = '1') then
                 if address = "00" then 
 
                 elsif address = "01" then
+                    sg_periode <= wrdata;
+                    s_state <= notcounting;
+                    sg_write_period <= '1';
+   --                 sg_next_count <= to_integer(unsigned(sg_periode));
 
                 elsif address = "10" then
-
+                    sg_ito <= wrdata(1);
+                    sg_cont <= wrdata(0);
+                    if wrdata(3) = '1' then
+                        s_state <= counting;
+                    end if;
+                    if wrdata(2) = '1' then
+                        s_state <= notcounting;
+                    end if;
                 else
-                
+                    if wrdata = X"00000000" then
+                        sg_to <= '0';
+                    end if;
                 end if;
             end if;
         end if;
@@ -86,8 +115,11 @@ begin
 
 
     -- assigning control and status registers
-    sg_control <= (3 => sg_start, 2 => sg_stop, 1 => sg_ito, 0 => sg_cont, OTHERS => '0');
+    sg_control <= (1 => sg_ito, 0 => sg_cont, OTHERS => '0');
     
     sg_status <= (1 => sg_to, 0 => sg_run, OTHERS => '0');
+
+    sg_counter <= std_logic_vector(to_unsigned(sg_count, 32));
+
     
 end synth;
