@@ -29,15 +29,7 @@ begin
     process (clk,reset_n) is
     begin
         if reset_n = '0' then
-            sg_cont <= '0';
-            sg_to <= '0'; 
-            sg_ito <= '0';
-            sg_run <= '0'; 
---            sg_stop <= '0';
---            sg_start <= '0';
             sg_count <= 0;
-            sg_counter <= (others => '0');
-            sg_periode <= (others => '0');
         elsif rising_edge(clk) then
             if s_state = counting then
                 sg_count <= sg_next_count;
@@ -64,10 +56,13 @@ begin
         end if;
     end process;
 
-    process(sg_read, sg_address)
+    process(sg_read, sg_address,reset_n)
     begin
         rddata <= (others => 'Z');
-        if (sg_read = '1') then
+        if (reset_n = '1') then
+            sg_counter <= (others => '0');
+            sg_periode <= (others => '0');
+        elsif (sg_read = '1') then
             if sg_address = "00" then
                 rddata <= sg_counter;
             elsif sg_address = "01" then
@@ -82,19 +77,23 @@ begin
     end process;
 
     -- write
-    process(clk)
+    process(clk,reset_n)
     begin
-        if (rising_edge(clk)) then
-            sg_write_period <= '0';
+        if (reset_n = '1') then
+            sg_cont <= '0';
+            sg_to <= '0'; 
+            sg_ito <= '0';
+            sg_run <= '0'; 
+        elsif (rising_edge(clk)) then
+            --sg_write_period <= '0';
             if (cs = '1' and write = '1') then
                 if address = "00" then 
 
                 elsif address = "01" then
                     sg_periode <= wrdata;
                     s_state <= notcounting;
-                    sg_write_period <= '1';
-   --                 sg_next_count <= to_integer(unsigned(sg_periode));
-
+                    --sg_write_period <= '1';
+ --                   sg_next_count <= to_integer(unsigned(sg_periode));
                 elsif address = "10" then
                     sg_ito <= wrdata(1);
                     sg_cont <= wrdata(0);
@@ -112,7 +111,7 @@ begin
             end if;
         end if;
     end process;
-
+    sg_write_period <= '1' when address = "01" else '0';
 
     -- assigning control and status registers
     sg_control <= (1 => sg_ito, 0 => sg_cont, OTHERS => '0');
