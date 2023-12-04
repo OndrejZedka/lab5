@@ -142,7 +142,6 @@ begin
     process(reset_n, sg_start, sg_stop, sg_cont, sg_count)
     begin
         if (reset_n = '0' or sg_stop = '1' or (sg_cont = '0' and sg_count = X"00000000")) then 
-        -- pas sûr de la dernière condition OE CEST FAUX, J'ai corrigé?? (mettre 0 serait plus logique mais on veut que le timer se reload avec period)
             s_state <= notcounting;
         elsif sg_start = '1' then
             s_state <= counting;
