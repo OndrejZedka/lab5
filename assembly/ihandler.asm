@@ -11,22 +11,22 @@ _start:
 	br main
 interrupt_handler:
 ; ============= PUSH ON STACK ================
-	addi sp, sp, 0 ; A DEFINIR !!!!!!!!!!!!
-;	stw at, 0(sp)  ; exemple
+	addi sp, sp, -36 
+	stw t0, 0(sp) 
+	stw t1, 4(sp) 
+	stw t2, 8(sp) 
+	stw t3, 12(sp) 
+	stw t4, 16(sp) 
+	stw t5, 20(sp) 
+	stw t6, 24(sp) 
+	stw t7, 28(sp) 
 
-; ||  ||  ||     
-; ||  ||  ||   
-;              
-; ()  ()  ()  
-   #       #######    #    ### ######  ####### 
-  # #      #         # #    #  #     # #       
- #   #     #        #   #   #  #     # #       
-#     #    #####   #     #  #  ######  #####   
-#######    #       #######  #  #   #   #       
-#     #    #       #     #  #  #    #  #       
-#     #    #       #     # ### #     # #######  
+;	rdctl t0, ienable
+;	stw t0, 32(sp) ; store ienable
+	stw ea, 32(sp) ; store exception return address
 
-
+;	addi t0, zero, 1
+;	wrctl status, t0 ; enable interrupts
 
 ;=============================
 	rdctl t0, ctl4 ;ipending (les bits 0 et 2 nous interessent)
@@ -43,6 +43,7 @@ timerirq:
 	addi t0, t0, 1
 	stw t0, LEDS1(zero)
 	stw zero, STATUS_REG(zero) ; clear TO bit to reset the irq
+	jmpi end_interrupt
 
 buttonirq:
 	ldw t0, EDGECAPTURE(zero)
@@ -63,21 +64,22 @@ button1:
 	jmpi end_interrupt
 end_interrupt:
 ; ============= POP FROM STACK ================
-;	ldw at, 0(sp)  ; exemple
-	addi sp, sp, 0 ; A DEFINIR !!!!!!!!!!!!
-; ||  ||  ||     
-; ||  ||  ||   
-;              
-; ()  ()  ()  
-   #       #######    #    ### ######  ####### 
-  # #      #         # #    #  #     # #       
- #   #     #        #   #   #  #     # #       
-#     #    #####   #     #  #  ######  #####   
-#######    #       #######  #  #   #   #       
-#     #    #       #     #  #  #    #  #       
-#     #    #       #     # ### #     # #######
+;	wrctl status, zero ; disable interrupts
+
+	ldw t0, 0(sp) 
+	ldw t1, 4(sp) 
+	ldw t2, 8(sp) 
+	ldw t3, 12(sp) 
+	ldw t4, 16(sp) 
+	ldw t5, 20(sp) 
+	ldw t6, 24(sp) 
+	ldw t7, 28(sp)
+
+	ldw ea, 32(sp)
+	addi sp, sp, 36
+
 	addi ea, ea, -4
-	eret
+	eret ; will enable interrupts again
 
 
 
@@ -90,9 +92,13 @@ main:
 	addi t0, zero, 999 ; on veut une periode de 1000 donc 999 -> 0
 	stw t0, PERIOD_REG(zero)
 	addi t0, zero, 11 ; 1011 en binaire dcp on active les start, ito et cont bits
-	stw t0, CONTROL_REG(zero)	
+	stw t0, CONTROL_REG(zero)
+	addi t0, zero, 5 ; 101 in binary 
+	wrctl ienable, t0 ; choose wich external devices can send irqs
+	addi t0, zero, 1
+	wrctl status, t0 ; enable interrupts
 
-	addi t1, zero,0 ;Counter infini
+	addi t1, zero, 0 ;Counter infini
 loopmain:
 	addi t1, t1, 1
 	stw t1, LEDS2(zero)
