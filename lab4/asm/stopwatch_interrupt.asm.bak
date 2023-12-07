@@ -51,12 +51,12 @@ interrupt_handler:
 	stw t6, 24(sp) 
 	stw t7, 28(sp) 
 
-;	rdctl t0, ienable ; ====== ON AVAIT PAS BESOIN DE CA DANS LE LAB 2 MAIS MTN PT OUI
-;	stw t0, 32(sp) ; store ienable ; ====== ON AVAIT PAS BESOIN DE CA DANS LE LAB 2 MAIS MTN PT OUI
+;	rdctl t0, ienable
+;	stw t0, 32(sp) ; store ienable
 	stw ea, 32(sp) ; store exception return address
 
-;	addi t0, zero, 1 ; ===== A METTRE DANS BUTTON IRQ JE CROIS
-;	wrctl status, t0 ; enable interrupts ; ===== A METTRE DANS BUTTON IRQ JE CROIS
+;	addi t0, zero, 1
+;	wrctl status, t0 ; enable interrupts
 
 ;=============================
 	rdctl t0, ctl4 ;ipending (les bits 0 et 2 nous interessent)
@@ -69,7 +69,7 @@ interrupt_handler:
 	jmpi end_interrupt
 
 timerirq:
-; A FAIRE INCREMENTER COUNTER ET DECIDER SI ON APPELLE DISPLAY OU PAS
+
 	stw zero, TIMER+12(zero) ; clear TO bit to reset the irq
 	jmpi end_interrupt
 
@@ -78,13 +78,10 @@ buttonirq:
 	stw zero, BUTTON+4(zero) ; reset 
 	andi t0, t0, 1 ; on veut juste le dernier bit de edgecapture
 	beq t0, zero, end_interrupt ; check si le button 0 est pressed sinon on va a la fin
-; A FAIRE APPELER SPEND_TIME MAIS FAUT ENABLE LES INTERRUPTS AVANT ET DCP FAUT SASSSURER QU ON A MIS TOUS LES TRUCSS IMPORTANTS SUR LE STACK (COMME DANS L EXEMPLE DU COURS?)
-; JE CROIS ON VEUT JUSTE LES INTERRUPTS DU TIMER MAIS PAS CEUX DU BOUTON DCP FAUDRAIT CHANGER IENABLE JE CROIS
-; APRES LE RETOUR DE LA FONCTION FAUT TOUT RESTORE COMME AVANT ET DISABLE INTERRUPTS A NOUVEAU
 
 end_interrupt:
 ; ============= POP FROM STACK ================
-;	wrctl status, zero ; disable interrupts ; ===== A METTRE DANS BUTTON IRQ JE CROIS
+;	wrctl status, zero ; disable interrupts
 
 	ldw t0, 0(sp) 
 	ldw t1, 4(sp) 
