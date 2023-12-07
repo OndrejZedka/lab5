@@ -89,7 +89,7 @@ main:
 	stw zero, LEDS0(zero); init premier compteur a 0
 	stw zero, LEDS1(zero); init deuxieme a 0
 	stw zero, LEDS2(zero); init troisieme a 0
-	addi t0, zero, 40 ;999 ; on veut une periode de 1000 donc 999 -> 0
+	addi t0, zero, 999 ; on veut une periode de 1000 donc 999 -> 0
 	stw t0, PERIOD_REG(zero)
 	addi t0, zero, 11 ; 1011 en binaire dcp on active les start, ito et cont bits
 	stw t0, CONTROL_REG(zero)

@@ -183,7 +183,7 @@ set_global_assignment -name DEVICE EP4CE30F23C8
 set_global_assignment -name TOP_LEVEL_ENTITY GECKO
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 16.0.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "10:45:14  JANUARY 29, 2018"
-set_global_assignment -name LAST_QUARTUS_VERSION 16.0.0
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
 set_global_assignment -name USE_GENERATED_PHYSICAL_CONSTRAINTS OFF -section_id eda_palace
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
@@ -598,6 +598,7 @@ set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -
 set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
 set_location_assignment PIN_AB15 -to rx
 set_location_assignment PIN_AA15 -to tx
+set_global_assignment -name VHDL_FILE ../../vhdl/timer.vhd
 set_global_assignment -name QXP_FILE register_file.qxp
 set_global_assignment -name QXP_FILE mux2x32.qxp
 set_global_assignment -name QXP_FILE mux2x16.qxp
