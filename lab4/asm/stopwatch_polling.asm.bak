@@ -28,17 +28,18 @@ show_and_reset:
 	; display on leds
 	addi a0, s1, 0
 	call display
-loop_timer: ; cette loop dure 20 clock cycles (16 si on suit le branch a show_and_reset)
+loop_timer: ; cette loop dure 20 clock cycles (16 si on suit le branch a show_and_reset) (SANS LES TRUCS EN COMMENTAIRE!!!!!)
 	addi s2, s2, -1
 	addi s3, zero, 0 ; instruction random juste pr rajouter du delai
 	addi s3, zero, 0 ; instruction random juste pr rajouter du delai
 	addi s3, zero, 0 ; instruction random juste pr rajouter du delai
-	
-	ldw s5, BUTTON+4(zero) ; edgecapture
-	andi s5, s5, 1 ; on veut le bit 0
-	addi s6, zero, 1
-	beq s5, s6, spend_time ; si le bit 0 de edgecapt est actif on appelle la fonction
-	ldw zero, BUTTON+4(zero) ; clear edgecapture
+
+;	LES 5 LIGNES EN DESSOUS SONT POUR LA PARTIE POLLING DU BOUTON, MAIS JE N'AI PAS PRIS EN COMPTE LE DELAI DES NOUVELLES INSTRUCTIONS DCP LE TIMER SERA TROP LONG
+;	ldw s5, BUTTON+4(zero) ; edgecapture
+;	andi s5, s5, 1 ; on veut le bit 0
+;	addi s6, zero, 1
+;	beq s5, s6, spend_time ; si le bit 0 de edgecapt est actif on appelle la fonction
+;	ldw zero, BUTTON+4(zero) ; clear edgecapture
 
 	beq s2, zero, show_and_reset
 	jmpi loop_timer
