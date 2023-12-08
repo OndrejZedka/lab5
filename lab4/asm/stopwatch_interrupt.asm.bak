@@ -30,7 +30,7 @@ main:
 	stw t0, TIMER+4(zero) ; init period reg du timer
 	addi t0, zero, 11 ; 1011 en binaire dcp on active les start, ito et cont bits
 	stw t0, TIMER+8(zero) ; control reg du timer
-	stw zero, RAM+4(zero)
+	stw zero, RAM+16(zero)
 	add a0, zero, zero
 	call display
 ; FAUT INIT LE COUNTER MAIS JSP SI SUFFIT DANS UN REGISTER OU BIEN SI C EST MIEUX DE LE STOCK DANS LA RAM (JE DIRAIS RAM POUR ETRE SUR QU IL Y AIT PAS DE MERDE DANS LE HANDLER)
@@ -57,7 +57,7 @@ interrupt_handler:
 	stw ea, 32(sp) ; store exception return address
 
 ;	addi t0, zero, 1 ; ===== A METTRE DANS BUTTON IRQ JE CROIS
-;	wrctl status, t0 ; enable interrupts ; ===== A METTRE DANS BUTTON IRQ JE CROIS
+;	wrctl status, zero ; enable interrupts ; ===== A METTRE DANS BUTTON IRQ JE CROIS
 
 ;=============================
 	rdctl t0, ctl4 ;ipending (les bits 0 et 2 nous interessent)
@@ -73,9 +73,10 @@ timerirq:
 ; A FAIRE INCREMENTER COUNTER ET DECIDER SI ON APPELLE DISPLAY OU PAS
 
 	stw zero, TIMER+12(zero) ; clear TO bit to reset the irq
-	ldw t0, RAM+4(zero)
-	addi a0, t0, 1
-	stw a0, RAM+4(zero)
+	ldw t0, RAM+16(zero) 
+	addi a0, t0, 0
+	addi t0, t0,1 
+	stw t0, RAM+16(zero)
 	ldw t1, RAM+8(zero);check si on vient d'un boutton irq
 	andi t1, t1, 1
 	addi t2, zero, 1
@@ -118,10 +119,12 @@ buttonirq:
 	ldw t7, 28(sp)
 
 	ldw ea, 32(sp)
+	addi sp, sp, 36
 	wrctl status, zero ; desactive les interrupt
 	
 	ldw t0, RAM+8(zero)
 	bne t0, zero, skip_button
+	ldw a0, RAM+16(zero)
 	call display
 skip_button:
 	stw zero, RAM+8(zero) ; a la fin de button RAM+8 vaut zero

@@ -31,6 +31,7 @@ main:
 	addi t0, zero, 11 ; 1011 en binaire dcp on active les start, ito et cont bits
 	stw t0, TIMER+8(zero) ; control reg du timer
 	stw zero, RAM+16(zero)
+	stw zero, RAM+8(zero)
 	add a0, zero, zero
 	call display
 ; FAUT INIT LE COUNTER MAIS JSP SI SUFFIT DANS UN REGISTER OU BIEN SI C EST MIEUX DE LE STOCK DANS LA RAM (JE DIRAIS RAM POUR ETRE SUR QU IL Y AIT PAS DE MERDE DANS LE HANDLER)
@@ -108,7 +109,7 @@ buttonirq:
 	addi t0, zero, 1
 	wrctl status, t0 ;active les interrupt
 	call spend_time
-	
+	wrctl status, zero ; desactive les interrupt	
 	ldw t0, 0(sp) 
 	ldw t1, 4(sp) 
 	ldw t2, 8(sp) 
@@ -120,7 +121,7 @@ buttonirq:
 
 	ldw ea, 32(sp)
 	addi sp, sp, 36
-	wrctl status, zero ; desactive les interrupt
+
 	
 	ldw t0, RAM+8(zero)
 	bne t0, zero, skip_button
