@@ -16,16 +16,19 @@ stw t0, LFSR(zero)
 ; WRITE YOUR CODE AND CONSTANT DEFINITIONS HERE
 addi sp, zero, LEDs ; init stack pointer to end of ram
 addi s1, zero, 0 ; init timer
+addi s7, zero, 1
+slli s7, s7, 16
 show_and_reset:
 	; reset delay timer
 	addi s2, zero, 1 
-	slli s2, s2, 18 ; t2 = 2^18 = 262 144
-	addi s2, s2, 12145 ; t2 = 249 999
+	slli s2, s2, 17 ; t2 = 2^18 = 262 144 sans boutton et 2^17 avec bouttons
+	addi s2, s2, 1000 ; t2 = 249 999 -10 000 pour etre précis sans le button et +1000 avec les bouttons
 
 	ldw s3, LEDs(zero) ; instruction random juste pr rajouter du delai
 	ldw s3, LEDs(zero) ; instruction random juste pr rajouter du delai
 	
 	; display on leds
+	addi s1, s1, 1
 	addi a0, s1, 0
 	call display
 loop_timer: ; cette loop dure 20 clock cycles (16 si on suit le branch a show_and_reset) (SANS LES TRUCS EN COMMENTAIRE!!!!!)
@@ -35,16 +38,21 @@ loop_timer: ; cette loop dure 20 clock cycles (16 si on suit le branch a show_an
 	addi s3, zero, 0 ; instruction random juste pr rajouter du delai
 
 ;	LES 5 LIGNES EN DESSOUS SONT POUR LA PARTIE POLLING DU BOUTON, MAIS JE N'AI PAS PRIS EN COMPTE LE DELAI DES NOUVELLES INSTRUCTIONS DCP LE TIMER SERA TROP LONG
-;	ldw s5, BUTTON+4(zero) ; edgecapture
-;	andi s5, s5, 1 ; on veut le bit 0
-;	addi s6, zero, 1
-;	beq s5, s6, spend_time ; si le bit 0 de edgecapt est actif on appelle la fonction
-;	ldw zero, BUTTON+4(zero) ; clear edgecapture
-
-	beq s2, zero, show_and_reset
+	ldw s5, BUTTON+4(zero) ; edgecapture
+	andi s5, s5, 1 ; on veut le bit 0
+	addi s6, zero, 1
+	beq s5, s6, call_func ; si le bit 0 de edgecapt est actif on appelle la fonction
+back_in:
+	stw zero, BUTTON+4(zero) ; clear edgecapture
+	
+	bge  zero,s2, show_and_reset
 	jmpi loop_timer
 	
+call_func:
+	call spend_time
 	
+	sub s2, s2, s7
+	jmpi back_in
 
 
 ; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
