@@ -27,6 +27,7 @@ main:
 	addi t0, zero, 76 ; 1001100 en binaire
 	slli t0, t0, 16 
 	addi t0, t0, 19263 ; t0 =  4 999 999 (on veut une periode de 100ms donc 5 000 000 clock cycles)
+;	addi t0, zero, 300 ; <================================================= ENLEVER APRES ==================================================================
 	stw t0, TIMER+4(zero) ; init period reg du timer
 	addi t0, zero, 11 ; 1011 en binaire dcp on active les start, ito et cont bits
 	stw t0, TIMER+8(zero) ; control reg du timer
@@ -75,25 +76,25 @@ timerirq:
 
 	stw zero, TIMER+12(zero) ; clear TO bit to reset the irq
 	ldw t0, RAM+16(zero) 
-	addi a0, t0, 0
-	addi t0, t0,1 
-	stw t0, RAM+16(zero)
+	addi a0, t0, 1 
+	stw a0, RAM+16(zero)
 	ldw t1, RAM+8(zero);check si on vient d'un boutton irq
 	andi t1, t1, 1
 	addi t2, zero, 1
 	beq t1, t2, end_timerirq ;skip le +1 du counter (le fait a la fin de button)
 	call display
 end_timerirq:
-	stw zero, RAM+8(zero) ;je le met à zero pour que dans button on check si il faut display
+	stw zero, RAM+8(zero) ;je le met ï¿½ zero pour que dans button on check si il faut display
 	jmpi end_interrupt
 
 buttonirq:
 	ldw t0, BUTTON+4(zero)
 	stw zero, BUTTON+4(zero) ; reset 
-	addi t1, zero,1
-	stw t1, RAM+8(zero);Set 1 pour le timerirq
+
 	andi t0, t0, 1 ; on veut juste le dernier bit de edgecapture
 	beq t0, zero, end_interrupt ; check si le button 0 est pressed sinon on va a la fin
+	addi t1, zero,1
+	stw t1, RAM+8(zero);Set 1 pour le timerirq
 	
 	addi sp, sp, -36 
 	stw t0, 0(sp) 
@@ -108,7 +109,12 @@ buttonirq:
 
 	addi t0, zero, 1
 	wrctl status, t0 ;active les interrupt
-	call spend_time
+	call spend_time ; <====================== IMPORTANT REMETTRE APRES ==========================================================================================
+;	addi t0, zero, 100 ; <================================================= ENLEVER APRES ==================================================================
+;test_loop_a_enlever: ; <================================================= ENLEVER APRES ==================================================================
+;	addi t0, t0, -1 ; <================================================= ENLEVER APRES ==================================================================
+;	bne t0, zero, test_loop_a_enlever ; <================================================= ENLEVER APRES ==================================================================
+	
 	wrctl status, zero ; desactive les interrupt	
 	ldw t0, 0(sp) 
 	ldw t1, 4(sp) 
