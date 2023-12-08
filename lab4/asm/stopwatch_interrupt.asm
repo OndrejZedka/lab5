@@ -2,7 +2,6 @@
 .equ    LEDs, 0x2000
 .equ    TIMER, 0x2020
 .equ    BUTTON, 0x2030
-
 .equ    LFSR, RAM
 
 br main
@@ -31,7 +30,9 @@ main:
 	stw t0, TIMER+4(zero) ; init period reg du timer
 	addi t0, zero, 11 ; 1011 en binaire dcp on active les start, ito et cont bits
 	stw t0, TIMER+8(zero) ; control reg du timer
-
+	stw zero, RAM+4(zero)
+	add a0, zero, zero
+	call display
 ; FAUT INIT LE COUNTER MAIS JSP SI SUFFIT DANS UN REGISTER OU BIEN SI C EST MIEUX DE LE STOCK DANS LA RAM (JE DIRAIS RAM POUR ETRE SUR QU IL Y AIT PAS DE MERDE DANS LE HANDLER)
 
 infinite_loop:
@@ -70,14 +71,60 @@ interrupt_handler:
 
 timerirq:
 ; A FAIRE INCREMENTER COUNTER ET DECIDER SI ON APPELLE DISPLAY OU PAS
+
 	stw zero, TIMER+12(zero) ; clear TO bit to reset the irq
+	ldw t0, RAM+4(zero)
+	addi a0, t0, 1
+	stw a0, RAM+4(zero)
+	ldw t1, RAM+8(zero);check si on vient d'un boutton irq
+	andi t1, t1, 1
+	addi t2, zero, 1
+	beq t1, t2, end_timerirq ;skip le +1 du counter (le fait a la fin de button)
+	call display
+end_timerirq:
+	stw zero, RAM+8(zero) ;je le met à zero pour que dans button on check si il faut display
 	jmpi end_interrupt
 
 buttonirq:
 	ldw t0, BUTTON+4(zero)
 	stw zero, BUTTON+4(zero) ; reset 
+	addi t1, zero,1
+	stw t1, RAM+8(zero);Set 1 pour le timerirq
 	andi t0, t0, 1 ; on veut juste le dernier bit de edgecapture
 	beq t0, zero, end_interrupt ; check si le button 0 est pressed sinon on va a la fin
+	
+	addi sp, sp, -36 
+	stw t0, 0(sp) 
+	stw t1, 4(sp) 
+	stw t2, 8(sp) 
+	stw t3, 12(sp) 
+	stw t4, 16(sp) 
+	stw t5, 20(sp) 
+	stw t6, 24(sp) 
+	stw t7, 28(sp)
+	stw ea, 32(sp)
+
+	addi t0, zero, 1
+	wrctl status, t0 ;active les interrupt
+	call spend_time
+	
+	ldw t0, 0(sp) 
+	ldw t1, 4(sp) 
+	ldw t2, 8(sp) 
+	ldw t3, 12(sp) 
+	ldw t4, 16(sp) 
+	ldw t5, 20(sp) 
+	ldw t6, 24(sp) 
+	ldw t7, 28(sp)
+
+	ldw ea, 32(sp)
+	wrctl status, zero ; desactive les interrupt
+	
+	ldw t0, RAM+8(zero)
+	bne t0, zero, skip_button
+	call display
+skip_button:
+	stw zero, RAM+8(zero) ; a la fin de button RAM+8 vaut zero
 ; A FAIRE APPELER SPEND_TIME MAIS FAUT ENABLE LES INTERRUPTS AVANT ET DCP FAUT SASSSURER QU ON A MIS TOUS LES TRUCSS IMPORTANTS SUR LE STACK (COMME DANS L EXEMPLE DU COURS?)
 ; JE CROIS ON VEUT JUSTE LES INTERRUPTS DU TIMER MAIS PAS CEUX DU BOUTON DCP FAUDRAIT CHANGER IENABLE JE CROIS
 ; APRES LE RETOUR DE LA FONCTION FAUT TOUT RESTORE COMME AVANT ET DISABLE INTERRUPTS A NOUVEAU
