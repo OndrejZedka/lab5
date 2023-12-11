@@ -22,7 +22,7 @@ show_and_reset:
 	; reset delay timer
 	addi s2, zero, 1 
 	slli s2, s2, 17 ; t2 = 2^18 = 262 144 sans boutton et 2^17 avec bouttons
-	addi s2, s2, 1000 ; t2 = 249 999 -10 000 pour etre précis sans le button et +1000 avec les bouttons
+	addi s2, s2, 1000 ; t2 = 249 999 -10 000 pour etre precis sans le button et +1000 avec les bouttons
 
 	ldw s3, LEDs(zero) ; instruction random juste pr rajouter du delai
 	ldw s3, LEDs(zero) ; instruction random juste pr rajouter du delai
