@@ -51,7 +51,7 @@ back_in:
 call_func:
 	call spend_time
 	
-	sub s2, s2, s7
+	addi s1,s1,8
 	jmpi back_in
 
 
